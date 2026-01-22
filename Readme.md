@@ -2,7 +2,7 @@
 
 This is a reimplementation of the axis finder provided in the Matlab reference implementation for the seminar on tomography at the University of Vienna (winter semester 2025/26). It is built using the dashboarding library `panel`.
 
-![Axis Finder Screenshot](assets/screenshot.png)
+![Axis Finder Screenshot](assets/usage_example.gif)
 
 ## Usage
 
