@@ -1,10 +1,11 @@
 import argparse
 from pathlib import Path
 
+import numpy as np
 import panel as pn
 from bokeh.models.formatters import PrintfTickFormatter
 
-from axis_finder.image import draw_images, list_images
+from axis_finder.image import draw_images, list_images, load_cropped_image
 
 
 class App:
@@ -96,9 +97,9 @@ class App:
         )
         self._init_action()
 
-        self.update_summary_text()
+        self._update_summary_text()
 
-    def update_summary_text(self):
+    def _update_summary_text(self):
         center = (self._center_x_slider.value, self._center_y_slider.value)
         crop_size = (self._crop_width_slider.value, self._crop_height_slider.value)
 
@@ -116,14 +117,14 @@ class App:
             f"```"
         )
 
-    def update_image_selection_slider(self):
+    def _update_image_selection_slider(self):
         start, end = self._image_range.value
         n = int(end - start + 1)
         self._image_selection.end = n
         if self._image_selection.value > n:
             self._image_selection.value = n
 
-    def update_overlap_image(self):
+    def _update_overlap_image(self):
         idx = self._image_selection.value - 1
         start_idx, end_idx = map(int, self._image_range.value)
 
@@ -146,24 +147,24 @@ class App:
         )
         self._overlap_img_viewer.object = overlap_image
 
-    def next_image(self):
+    def _next_image(self):
         if self._image_selection.value < self._image_selection.end:
             self._image_selection.value += 1
 
-    def prev_image(self):
+    def _prev_image(self):
         if self._image_selection.value > self._image_selection.start:
             self._image_selection.value -= 1
 
     def _init_action(self):
-        self._next_button.on_click(lambda _: self.next_image())
-        self._prev_button.on_click(lambda _: self.prev_image())
+        self._next_button.on_click(lambda _: self._next_image())
+        self._prev_button.on_click(lambda _: self._prev_image())
         self._image_range.param.watch(
-            lambda _: self.update_image_selection_slider(), "value"
+            lambda _: self._update_image_selection_slider(), "value"
         )
 
         def on_slider_update(_):
-            self.update_overlap_image()
-            self.update_summary_text()
+            self._update_overlap_image()
+            self._update_summary_text()
 
         self._image_range.param.watch(on_slider_update, "value")
         self._image_selection.param.watch(on_slider_update, "value")
@@ -175,7 +176,47 @@ class App:
         self._switch_invert_colors.param.watch(on_slider_update, "value")
         self._color_selection.param.watch(on_slider_update, "value")
 
-    def make(self):
+    @property
+    def cx(self):
+        return self._center_x_slider.value
+
+    @property
+    def cy(self):
+        return self._center_y_slider.value
+
+    @property
+    def crop_width(self):
+        return self._crop_width_slider.value
+
+    @property
+    def crop_height(self):
+        return self._crop_height_slider.value
+
+    @property
+    def first_image_index(self):
+        return int(self._image_range.value[0] - 1)
+
+    @property
+    def image_count(self):
+        return int(self._image_range.value[1] - self._image_range.value[0] + 1)
+
+    def iter_image_paths(self):
+        start_idx = self.first_image_index
+        for i in range(self.image_count):
+            yield self._image_paths[start_idx + i].path
+
+    def get_grayscale_cropped_image(self, index: int) -> np.ndarray:
+        center = (self.cx, self.cy)
+        crop_size = (self.crop_width, self.crop_height)
+
+        img_path = self._image_paths[self.first_image_index + index].path
+        return load_cropped_image(img_path, center, crop_size)
+
+    def iter_cropped_grayscale_images(self):
+        for i in range(self.image_count):
+            yield self.get_grayscale_cropped_image(i)
+
+    def build(self):
         widget_box = pn.WidgetBox(
             pn.Column(
                 pn.pane.Markdown(
@@ -224,13 +265,14 @@ def main():
     parser.add_argument(
         "--port",
         type=int,
+        default=0,
         help="Specifies the listen port for panel (important for running in a container)",
     )
     args = parser.parse_args()
 
     app = App(args.image_dir)
     pn.serve(
-        app.make(),
+        app.build(),
         title="GUI Axis Finder",
         show=True,
         autoreload=args.dev,
