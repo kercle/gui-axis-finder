@@ -221,7 +221,18 @@ def main():
         action="store_true",
         help="Enable auto-reload for development",
     )
+    parser.add_argument(
+        "--port",
+        type=int,
+        help="Specifies the listen port for panel (important for running in a container)",
+    )
     args = parser.parse_args()
 
     app = App(args.image_dir)
-    pn.serve(app.make(), title="GUI Axis Finder", show=True, autoreload=args.dev)
+    pn.serve(
+        app.make(),
+        title="GUI Axis Finder",
+        show=True,
+        autoreload=args.dev,
+        port=args.port,
+    )

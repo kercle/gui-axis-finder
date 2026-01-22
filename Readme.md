@@ -28,3 +28,29 @@ To auto-reload the applet if you make changes to the code, you can run `axis-fin
 ```bash
 axis-finder path/to/image/directory --dev
 ```
+
+## Docker/Podman
+
+The app can also be bundled in a Docker or Podman container. To build the container image, run:
+
+```bash
+docker build -t axis-finder .
+```
+
+or with Podman:
+
+```bash
+podman build -t axis-finder .
+```
+
+To run the container, use:
+
+```bash
+docker run --rm -p 5006:5006 -v path/to/image/directory:/data axis-finder /data
+```
+
+or with Podman:
+
+```bash
+podman run --rm -p 5006:5006 -v path/to/image/directory:/data axis-finder /data
+```
