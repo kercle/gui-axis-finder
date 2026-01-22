@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gui-axis-finder"
+version = "0.1.0"
+description = "A GUI tool to find the rotation axis in tomographic images."
+dependencies = [
+    "panel",
+    "pillow",
+    "numpy",
+]
+requires-python = ">=3.11"
+
+[project.scripts]
+axis-finder = "axis_finder.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/axis_finder"]
