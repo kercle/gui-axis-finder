@@ -78,7 +78,7 @@ A lazy generator that iterates through the entire selected range and yields proc
 
 #### `build()`
 Constructs the Panel UI layout.
-* **Returns**: `pn.WidgetBox` - A layout containing the sliders and controls.
+* **Returns**: The layout containing the sliders and controls.
 
 ---
 
